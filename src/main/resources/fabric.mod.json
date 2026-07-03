@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "localblindness",
+  "version": "${version}",
+  "name": "Local Blindness",
+  "description": "Client-side, toggleable blindness/darkness screen effect. Entirely local, no server involvement.",
+  "authors": ["Ronald Johnson"],
+  "contact": {
+    "homepage": "https://github.com/ouroboros-smp/LocalBlindness",
+    "sources": "https://github.com/ouroboros-smp/LocalBlindness"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.ouroboros.localblindness.LocalBlindnessClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.2",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

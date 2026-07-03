@@ -1,0 +1,30 @@
+# Gradle
+.gradle/
+build/
+loom-cache/
+dist/
+
+# Keep the wrapper jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Fabric dev run dirs
+run/
+runs/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

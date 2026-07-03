@@ -1,0 +1,12 @@
+# Normalize line endings in the repo
+* text=auto
+
+# Keep the gradle wrapper and shell scripts LF so Linux / CI can execute them
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Windows batch scripts stay CRLF
+*.bat text eol=crlf
+
+# Binary
+*.jar binary
