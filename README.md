@@ -4,6 +4,7 @@ A client-side Fabric mod that toggles the **real** vanilla Blindness (or Warden-
 
 - **Toggle** with a keybind (default `B`, rebindable in Controls) or the `/localblindness` command.
 - **Two effects**, switchable in config or on the fly: `blindness` (the standard Blindness effect) and `darkness` (the Warden's Darkness effect).
+- **Visual only.** The Blindness sprint penalty is dropped while the mod's effect is on, so you can still sprint normally. Only the visual applies. (Real blindness from gameplay is unaffected when the toggle is off.)
 - **Session-only** on/off state: it always starts off when the game launches. Nothing about the toggle is persisted.
 
 ## Requirements
@@ -19,7 +20,7 @@ A client-side Fabric mod that toggles the **real** vanilla Blindness (or Warden-
 
 1. Install Fabric Loader for 1.21.11.
 2. Drop these into your `mods/` folder:
-   - `localblindness-1.1.0.jar` (this mod)
+   - `localblindness-1.1.1.jar` (this mod)
    - [Fabric API](https://modrinth.com/mod/fabric-api) for 1.21.11
 3. Launch the game.
 
@@ -56,7 +57,9 @@ Config lives at `.minecraft/config/localblindness.json` and is written with sane
 
 ## How it works
 
-While the toggle is on, the mod applies an infinite-duration Blindness (or Darkness) `StatusEffectInstance` to your local `ClientPlayerEntity` and re-asserts it every client tick. Re-asserting matters because the server periodically syncs your effects; if it ever clears the client copy (for example on respawn or dimension change), the next tick puts it straight back. Because it is the genuine status effect, it renders exactly like vanilla blindness. When you toggle off, the mod removes the effect it applied.
+While the toggle is on, the mod applies an infinite-duration Blindness (or Darkness) `StatusEffectInstance` to your local `ClientPlayerEntity` and re-asserts it every client tick. Re-asserting matters because the server periodically syncs your effects; if it ever clears the client copy (for example on respawn or dimension change), the next tick puts it straight back. Because it is the genuine status effect, it renders exactly like vanilla blindness.
+
+The one gameplay side effect of vanilla Blindness, the inability to sprint, is removed by a small client Mixin: it redirects the `hasBlindnessEffect()` check inside `ClientPlayerEntity.canSprint` to report "no blindness" while the mod's effect is active. The fog and darkening are untouched, and the check falls back to vanilla behavior whenever the toggle is off.
 
 This is client-side only. The server never sees the effect, and it applies only to you.
 
@@ -70,7 +73,7 @@ Requires JDK 21.
 ./gradlew build
 ```
 
-The built jar lands in `build/libs/localblindness-1.1.0.jar`. Run `./gradlew runClient` to smoke-test it in a dev client.
+The built jar lands in `build/libs/localblindness-1.1.1.jar`. Run `./gradlew runClient` to smoke-test it in a dev client.
 
 ## License
 

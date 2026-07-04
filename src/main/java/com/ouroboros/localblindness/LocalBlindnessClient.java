@@ -31,16 +31,27 @@ public class LocalBlindnessClient implements ClientModInitializer {
     public static final String MOD_ID = "localblindness";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    private final ToggleState toggle = new ToggleState();
+    /** Session toggle. Static so the sprint mixin can read it without a handle to the instance. */
+    private static final ToggleState TOGGLE = new ToggleState();
+
     private BlindnessConfig config;
     private Path configPath;
+
+    /**
+     * True while the mod is actively blinding the player. Read by the sprint mixin so the vanilla
+     * blindness sprint penalty is dropped only while our effect is on (real gameplay blindness is
+     * left alone when the toggle is off).
+     */
+    public static boolean isEffectActive() {
+        return TOGGLE.isEnabled();
+    }
 
     @Override
     public void onInitializeClient() {
         this.configPath = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID + ".json");
         this.config = BlindnessConfig.load(configPath);
 
-        EffectController controller = new EffectController(toggle, () -> config);
+        EffectController controller = new EffectController(TOGGLE, () -> config);
 
         KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key." + MOD_ID + ".toggle",
@@ -51,7 +62,7 @@ public class LocalBlindnessClient implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleKey.wasPressed()) {
-                boolean now = toggle.toggle();
+                boolean now = TOGGLE.toggle();
                 if (client.player != null) {
                     client.player.sendMessage(status(now), true);
                 }
@@ -67,20 +78,20 @@ public class LocalBlindnessClient implements ClientModInitializer {
     private void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, Object registryAccess) {
         dispatcher.register(ClientCommandManager.literal(MOD_ID)
                 .executes(ctx -> {
-                    ctx.getSource().sendFeedback(status(toggle.isEnabled()));
+                    ctx.getSource().sendFeedback(status(TOGGLE.isEnabled()));
                     return 1;
                 })
                 .then(ClientCommandManager.literal("toggle").executes(ctx -> {
-                    ctx.getSource().sendFeedback(status(toggle.toggle()));
+                    ctx.getSource().sendFeedback(status(TOGGLE.toggle()));
                     return 1;
                 }))
                 .then(ClientCommandManager.literal("on").executes(ctx -> {
-                    toggle.set(true);
+                    TOGGLE.set(true);
                     ctx.getSource().sendFeedback(status(true));
                     return 1;
                 }))
                 .then(ClientCommandManager.literal("off").executes(ctx -> {
-                    toggle.set(false);
+                    TOGGLE.set(false);
                     ctx.getSource().sendFeedback(status(false));
                     return 1;
                 }))

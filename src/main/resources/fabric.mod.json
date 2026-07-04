@@ -3,7 +3,7 @@
   "id": "localblindness",
   "version": "${version}",
   "name": "Local Blindness",
-  "description": "Toggle the real vanilla Blindness (or Darkness) effect on yourself, client-side only. Entirely local, no server involvement.",
+  "description": "Toggle the real vanilla Blindness (or Darkness) effect on yourself, client-side only, without the sprint penalty. Entirely local, no server involvement.",
   "authors": ["Ronald Johnson"],
   "contact": {
     "homepage": "https://github.com/ouroboros-smp/LocalBlindness",
@@ -14,6 +14,9 @@
   "entrypoints": {
     "client": ["com.ouroboros.localblindness.LocalBlindnessClient"]
   },
+  "mixins": [
+    "localblindness.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.19.2",
     "minecraft": "~1.21.11",
