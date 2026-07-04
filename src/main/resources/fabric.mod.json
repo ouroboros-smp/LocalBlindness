@@ -3,7 +3,7 @@
   "id": "localblindness",
   "version": "${version}",
   "name": "Local Blindness",
-  "description": "Client-side, toggleable blindness/darkness screen effect. Entirely local, no server involvement.",
+  "description": "Toggle the real vanilla Blindness (or Darkness) effect on yourself, client-side only. Entirely local, no server involvement.",
   "authors": ["Ronald Johnson"],
   "contact": {
     "homepage": "https://github.com/ouroboros-smp/LocalBlindness",

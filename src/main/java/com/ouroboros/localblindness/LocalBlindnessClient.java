@@ -7,12 +7,10 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,14 +22,14 @@ import java.util.Locale;
  * <ul>
  *   <li>a toggle keybind (default 'B', rebindable in Controls),</li>
  *   <li>the {@code /localblindness} client command,</li>
- *   <li>the full-screen {@link OverlayRenderer} as the last HUD element.</li>
+ *   <li>a per-tick {@link EffectController} that applies the real Blindness/Darkness status effect
+ *       to the local player and re-asserts it so server sync cannot strip it.</li>
  * </ul>
  * Everything runs on the client. The server is never contacted and never told anything.
  */
 public class LocalBlindnessClient implements ClientModInitializer {
     public static final String MOD_ID = "localblindness";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    private static final Identifier OVERLAY_ID = Identifier.of(MOD_ID, "blindness_overlay");
 
     private final ToggleState toggle = new ToggleState();
     private BlindnessConfig config;
@@ -41,6 +39,8 @@ public class LocalBlindnessClient implements ClientModInitializer {
     public void onInitializeClient() {
         this.configPath = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID + ".json");
         this.config = BlindnessConfig.load(configPath);
+
+        EffectController controller = new EffectController(toggle, () -> config);
 
         KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key." + MOD_ID + ".toggle",
@@ -56,9 +56,8 @@ public class LocalBlindnessClient implements ClientModInitializer {
                     client.player.sendMessage(status(now), true);
                 }
             }
+            controller.tick(client.player);
         });
-
-        HudElementRegistry.addLast(OVERLAY_ID, new OverlayRenderer(toggle, () -> config));
 
         ClientCommandRegistrationCallback.EVENT.register(this::registerCommands);
 

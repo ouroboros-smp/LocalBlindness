@@ -1,9 +1,9 @@
 # Local Blindness
 
-A client-side Fabric mod that gives you a toggleable blindness (or Warden-style darkness) screen effect. It is entirely local: the server is never contacted and never knows. Works on any server or in singleplayer, and nobody else has to install anything.
+A client-side Fabric mod that toggles the **real** vanilla Blindness (or Warden-style Darkness) effect on yourself. It applies the genuine status effect to your own player on the client, so you get the actual blindness fog and darkening, not a screen filter. It is entirely local: the server is never contacted and never knows. Works on any server or in singleplayer, and nobody else has to install anything.
 
 - **Toggle** with a keybind (default `B`, rebindable in Controls) or the `/localblindness` command.
-- **Two styles**, switchable in config or on the fly: `blindness` (constant heavy dark) and `darkness` (slow pulsing dim).
+- **Two effects**, switchable in config or on the fly: `blindness` (the standard Blindness effect) and `darkness` (the Warden's Darkness effect).
 - **Session-only** on/off state: it always starts off when the game launches. Nothing about the toggle is persisted.
 
 ## Requirements
@@ -19,7 +19,7 @@ A client-side Fabric mod that gives you a toggleable blindness (or Warden-style 
 
 1. Install Fabric Loader for 1.21.11.
 2. Drop these into your `mods/` folder:
-   - `localblindness-1.0.0.jar` (this mod)
+   - `localblindness-1.1.0.jar` (this mod)
    - [Fabric API](https://modrinth.com/mod/fabric-api) for 1.21.11
 3. Launch the game.
 
@@ -34,8 +34,8 @@ A client-side Fabric mod that gives you a toggleable blindness (or Warden-style 
 | `/localblindness` | Print current on/off state |
 | `/localblindness toggle` | Flip on/off |
 | `/localblindness on` / `off` | Force on or off |
-| `/localblindness style blindness` | Switch to constant-dark style (saved to config) |
-| `/localblindness style darkness` | Switch to pulsing style (saved to config) |
+| `/localblindness style blindness` | Use the Blindness effect (saved to config) |
+| `/localblindness style darkness` | Use the Darkness effect (saved to config) |
 | `/localblindness reload` | Reload the config file from disk |
 
 ## Configuration
@@ -45,27 +45,22 @@ Config lives at `.minecraft/config/localblindness.json` and is written with sane
 ```json
 {
   "style": "BLINDNESS",
-  "blindnessIntensity": 0.9,
-  "darknessBase": 0.55,
-  "darknessAmplitude": 0.3,
-  "darknessPeriodSeconds": 3.0,
-  "toggleKeyCode": 66
+  "toggleKeyCode": 66,
+  "showEffectIcon": false
 }
 ```
 
 - `style`: `BLINDNESS` or `DARKNESS`.
-- `blindnessIntensity`: overlay opacity for the blindness style, 0.0 to 1.0.
-- `darknessBase`, `darknessAmplitude`: the pulsing style's midpoint opacity and swing (the opacity rides a sine wave between `base - amplitude` and `base + amplitude`, clamped to 0..1).
-- `darknessPeriodSeconds`: seconds per pulse.
 - `toggleKeyCode`: GLFW key code the keybind defaults to (66 is `B`). Rebinding in-game does not rewrite this; it is only the default.
-
-Opacities are clamped to 0..1 and the period to 0.1..60s on load, so a bad edit will not crash anything.
+- `showEffectIcon`: whether the effect's icon appears in the HUD/inventory while active. Off by default.
 
 ## How it works
 
-The effect is a single full-screen dark quad drawn as the last HUD element (`HudElementRegistry.addLast`), so it paints over the rest of the HUD. Because it is a HUD element, the darkening lifts automatically while a screen is open (chat, inventory, pause), which keeps menus usable, and it hides while the HUD is hidden with `F1`. The opacity math is isolated in `EffectMath` with no Minecraft dependencies, which is what the unit tests cover.
+While the toggle is on, the mod applies an infinite-duration Blindness (or Darkness) `StatusEffectInstance` to your local `ClientPlayerEntity` and re-asserts it every client tick. Re-asserting matters because the server periodically syncs your effects; if it ever clears the client copy (for example on respawn or dimension change), the next tick puts it straight back. Because it is the genuine status effect, it renders exactly like vanilla blindness. When you toggle off, the mod removes the effect it applied.
 
-This is a rendered overlay, not the vanilla blindness fog, so it does not depend on any potion effect and cannot be stripped by the server.
+This is client-side only. The server never sees the effect, and it applies only to you.
+
+Note: because a real Blindness effect is applied and removed on your client, if you legitimately receive Blindness or Darkness from gameplay while the toggle is on, that will be swept up when you toggle off. It re-syncs from the server shortly after.
 
 ## Build from source
 
@@ -75,7 +70,7 @@ Requires JDK 21.
 ./gradlew build
 ```
 
-The built jar lands in `build/libs/localblindness-1.0.0.jar`. Run `./gradlew runClient` to smoke-test it in a dev client.
+The built jar lands in `build/libs/localblindness-1.1.0.jar`. Run `./gradlew runClient` to smoke-test it in a dev client.
 
 ## License
 
