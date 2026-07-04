@@ -18,17 +18,17 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 /**
- * Client entrypoint. Wires up:
+ * Client entrypoint for Blindfold. Wires up:
  * <ul>
  *   <li>a toggle keybind (default 'B', rebindable in Controls),</li>
- *   <li>the {@code /localblindness} client command,</li>
+ *   <li>the {@code /blindfold} client command,</li>
  *   <li>a per-tick {@link EffectController} that applies the real Blindness/Darkness status effect
  *       to the local player and re-asserts it so server sync cannot strip it.</li>
  * </ul>
  * Everything runs on the client. The server is never contacted and never told anything.
  */
 public class LocalBlindnessClient implements ClientModInitializer {
-    public static final String MOD_ID = "localblindness";
+    public static final String MOD_ID = "blindfold";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     /** Session toggle. Static so the sprint mixin can read it without a handle to the instance. */
@@ -39,7 +39,7 @@ public class LocalBlindnessClient implements ClientModInitializer {
 
     /**
      * True while the mod is actively blinding the player. Read by the sprint mixin so the vanilla
-     * blindness sprint penalty is dropped only while our effect is on (real gameplay blindness is
+     * blindness sprint/swim penalty is dropped only while our effect is on (real gameplay blindness is
      * left alone when the toggle is off).
      */
     public static boolean isEffectActive() {
@@ -72,7 +72,7 @@ public class LocalBlindnessClient implements ClientModInitializer {
 
         ClientCommandRegistrationCallback.EVENT.register(this::registerCommands);
 
-        LOGGER.info("[LocalBlindness] ready (style={}, toggleKey={})", config.resolvedStyle(), config.toggleKeyCode);
+        LOGGER.info("[Blindfold] ready (style={}, toggleKey={})", config.resolvedStyle(), config.toggleKeyCode);
     }
 
     private void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, Object registryAccess) {
@@ -103,7 +103,7 @@ public class LocalBlindnessClient implements ClientModInitializer {
                 .then(ClientCommandManager.literal("reload").executes(ctx -> {
                     this.config = BlindnessConfig.load(configPath);
                     ctx.getSource().sendFeedback(Text.literal(
-                            "[Local Blindness] reloaded config (style=" + styleLabel() + ")"));
+                            "[Blindfold] reloaded config (style=" + styleLabel() + ")"));
                     return 1;
                 })));
     }
@@ -111,7 +111,7 @@ public class LocalBlindnessClient implements ClientModInitializer {
     private int setStyle(FabricClientCommandSource source, EffectStyle style) {
         config.style = style.name();
         config.save(configPath);
-        source.sendFeedback(Text.literal("[Local Blindness] style set to " + style.name().toLowerCase(Locale.ROOT)));
+        source.sendFeedback(Text.literal("[Blindfold] style set to " + style.name().toLowerCase(Locale.ROOT)));
         return 1;
     }
 
@@ -120,6 +120,6 @@ public class LocalBlindnessClient implements ClientModInitializer {
     }
 
     private static Text status(boolean on) {
-        return Text.literal("[Local Blindness] " + (on ? "ON" : "off"));
+        return Text.literal("[Blindfold] " + (on ? "ON" : "off"));
     }
 }

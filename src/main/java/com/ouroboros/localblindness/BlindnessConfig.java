@@ -10,14 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * User-editable settings, persisted as JSON in the Fabric config directory. Only the effect style,
- * the default keybind, and whether to show the effect icon persist. The on/off toggle is deliberately
- * session-only (see {@link ToggleState}).
+ * User-editable settings, persisted as JSON in the Fabric config directory (`blindfold.json`). Only the
+ * effect style, the default keybind, and whether to show the effect icon persist. The on/off toggle is
+ * deliberately session-only (see {@link ToggleState}).
  *
  * <p>Kept free of Minecraft types so it can be unit tested on a plain JVM.
  */
 public final class BlindnessConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger("localblindness");
+    private static final Logger LOGGER = LoggerFactory.getLogger("blindfold");
 
     /** Which real status effect the toggle applies ("BLINDNESS" or "DARKNESS"). */
     public String style = EffectStyle.BLINDNESS.name();
@@ -52,7 +52,7 @@ public final class BlindnessConfig {
                     config = parsed;
                 }
             } catch (Exception e) {
-                LOGGER.warn("[LocalBlindness] Could not read config {}, using defaults", path, e);
+                LOGGER.warn("[Blindfold] Could not read config {}, using defaults", path, e);
             }
         }
         config.clampSelf();
@@ -69,7 +69,7 @@ public final class BlindnessConfig {
             }
             Files.writeString(path, gson.toJson(this));
         } catch (IOException e) {
-            LOGGER.warn("[LocalBlindness] Could not write config {}", path, e);
+            LOGGER.warn("[Blindfold] Could not write config {}", path, e);
         }
     }
 }

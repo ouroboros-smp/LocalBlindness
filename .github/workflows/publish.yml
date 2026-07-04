@@ -1,6 +1,6 @@
 name: publish
 
-# Publishes on every version tag (e.g. `git tag v1.1.2 && git push origin v1.1.2`).
+# Publishes on every version tag (e.g. `git tag v1.2.0 && git push origin v1.2.0`).
 # Can also be run by hand from the Actions tab (workflow_dispatch).
 on:
   push:
@@ -35,9 +35,9 @@ jobs:
           files: build/libs/*.jar
 
           # ---- Modrinth ----
-          # modrinth-id is the project slug or id. Create the project first (slug: local-blindness),
-          # then add a MODRINTH_TOKEN repo secret (Modrinth > Settings > PATs, scope: create versions).
-          modrinth-id: local-blindness
+          # Project slug is "blindfold". Add a MODRINTH_TOKEN repo secret
+          # (Modrinth > Settings > PATs, scope: create versions).
+          modrinth-id: blindfold
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
           # ---- CurseForge (optional) ----
@@ -50,7 +50,7 @@ jobs:
 
           # ---- metadata ----
           # Version, loader, and game versions are read from fabric.mod.json; kept explicit here for safety.
-          name: Local Blindness ${{ github.ref_name }}
+          name: Blindfold ${{ github.ref_name }}
           version-type: release
           loaders: fabric
           game-versions: '1.21.11'

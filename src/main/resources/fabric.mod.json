@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "localblindness",
+  "id": "blindfold",
   "version": "${version}",
-  "name": "Local Blindness",
-  "description": "Toggle the real vanilla Blindness (or Darkness) effect on yourself, client-side only, without the sprint penalty. Entirely local, no server involvement.",
+  "name": "Blindfold",
+  "description": "Toggle the real vanilla Blindness (or Darkness) effect on yourself, client-side only, without the sprint or swim penalty. Entirely local, no server involvement.",
   "authors": ["Ronald Johnson"],
   "contact": {
     "homepage": "https://github.com/ouroboros-smp/LocalBlindness",
@@ -15,7 +15,7 @@
     "client": ["com.ouroboros.localblindness.LocalBlindnessClient"]
   },
   "mixins": [
-    "localblindness.mixins.json"
+    "blindfold.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.2",
