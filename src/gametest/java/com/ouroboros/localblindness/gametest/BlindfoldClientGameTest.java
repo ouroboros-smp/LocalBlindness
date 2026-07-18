@@ -2,9 +2,11 @@ package com.ouroboros.localblindness.gametest;
 
 import com.ouroboros.localblindness.LocalBlindnessClient;
 import com.ouroboros.localblindness.gametest.mixin.ClientPlayerEntityInvoker;
+import java.util.Properties;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerConnection;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -25,8 +27,15 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
             client.options.getMaxFps().setValue(60);
             client.options.getEnableVsync().setValue(false);
         });
-        try (TestSingleplayerContext singleplayer = context.worldBuilder().create()) {
-            singleplayer.getClientWorld().waitForChunksDownload();
+        Properties serverProperties = new Properties();
+        serverProperties.setProperty("view-distance", "2");
+        serverProperties.setProperty("simulation-distance", "5");
+        serverProperties.setProperty("generate-structures", "false");
+        serverProperties.setProperty("spawn-animals", "false");
+        serverProperties.setProperty("spawn-npcs", "false");
+        try (TestDedicatedServerContext server = context.worldBuilder().createServer(serverProperties);
+             TestServerConnection connection = server.connect()) {
+            connection.getClientWorld().waitForChunksDownload();
             context.waitFor(client -> client.player != null);
 
             command(context, "blindfold off");
