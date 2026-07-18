@@ -8,11 +8,16 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContex
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class BlindfoldClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
+        // Fabric API 4.3.5 logs world state every wait-loop iteration. GitHub's captured console can
+        // otherwise starve the integrated server long enough to hit Fabric's fixed startup timeout.
+        Configurator.setLevel("fabric-client-gametest-api-v1", Level.WARN);
         context.runOnClient(client -> {
             // Keep world startup comfortably inside Fabric's fixed world-load timeout on shared CI runners.
             client.options.getViewDistance().setValue(2);
