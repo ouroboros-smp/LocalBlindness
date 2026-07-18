@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "blindfold-gametest",
+  "version": "1.0.0",
+  "name": "Blindfold client GameTests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "com.ouroboros.localblindness.gametest.BlindfoldClientGameTest"
+    ]
+  },
+  "mixins": [
+    "blindfold-gametest.mixins.json"
+  ],
+  "depends": {
+    "blindfold": "*",
+    "fabric-api": "*"
+  }
+}

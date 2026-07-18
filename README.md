@@ -71,9 +71,10 @@ Requires JDK 21.
 
 ```bash
 ./gradlew build
+./gradlew runClientGameTest
 ```
 
-The built jar lands in `build/libs/blindfold-1.2.0.jar`. Run `./gradlew runClient` to smoke-test it in a dev client.
+The built jar lands in `build/libs/blindfold-1.2.0.jar`. `runClientGameTest` launches Fabric's real client GameTest suite and verifies command toggling, both vanilla visual effects, re-assertion, cleanup, and the scoped sprint bypass. Run `./gradlew runClient` for an interactive smoke test.
 
 ## License
 

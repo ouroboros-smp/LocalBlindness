@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.ouroboros.localblindness.gametest.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ClientPlayerEntityInvoker"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
