@@ -13,6 +13,13 @@ import net.minecraft.entity.effect.StatusEffects;
 public final class BlindfoldClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
+        context.runOnClient(client -> {
+            // Keep world startup comfortably inside Fabric's fixed world-load timeout on shared CI runners.
+            client.options.getViewDistance().setValue(2);
+            client.options.getSimulationDistance().setValue(5);
+            client.options.getMaxFps().setValue(60);
+            client.options.getEnableVsync().setValue(false);
+        });
         try (TestSingleplayerContext singleplayer = context.worldBuilder().create()) {
             singleplayer.getClientWorld().waitForChunksDownload();
             context.waitFor(client -> client.player != null);
