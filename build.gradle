@@ -44,3 +44,13 @@ java {
 test {
     useJUnitPlatform()
 }
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "blindfold-gametest"
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
