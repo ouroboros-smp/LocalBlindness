@@ -47,6 +47,18 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # The self-hosted runner container starts bare; give the headless MC client a
+      # virtual display and software GL. No-op when already installed.
+      - name: Ensure xvfb and GL libraries
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              xvfb libgl1 libglx-mesa0 libgl1-mesa-dri \
+              libxrandr2 libxcursor1 libxi6 libxxf86vm1 libxinerama1
+          fi
+
       - name: Run client GameTests
         run: xvfb-run -a ./gradlew runClientGameTest --stacktrace
 
