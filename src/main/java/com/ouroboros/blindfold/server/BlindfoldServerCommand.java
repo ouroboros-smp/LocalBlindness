@@ -49,7 +49,7 @@ public final class BlindfoldServerCommand {
                         .then(CommandManager.literal("darkness").executes(ctx ->
                                 setStyle(ctx.getSource(), optIns, EffectStyle.DARKNESS))))
                 .then(CommandManager.literal("reload")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(CommandManager.requirePermissionLevel(CommandManager.GAMEMASTERS_CHECK))
                         .executes(ctx -> {
                             BlindfoldServerCommand.reload(ctx.getSource());
                             return 1;
