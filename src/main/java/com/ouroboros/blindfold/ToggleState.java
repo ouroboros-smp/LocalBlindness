@@ -1,4 +1,4 @@
-package com.ouroboros.localblindness;
+package com.ouroboros.blindfold;
 
 /**
  * The on/off state of the effect for this game session. Session-only by design: it always starts
