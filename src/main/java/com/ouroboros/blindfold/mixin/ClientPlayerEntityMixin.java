@@ -1,6 +1,6 @@
-package com.ouroboros.localblindness.mixin;
+package com.ouroboros.blindfold.mixin;
 
-import com.ouroboros.localblindness.LocalBlindnessClient;
+import com.ouroboros.blindfold.BlindfoldClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,8 +22,8 @@ public abstract class ClientPlayerEntityMixin {
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;hasBlindnessEffect()Z"
             )
     )
-    private boolean localblindness$ignoreBlindnessForSprint(ClientPlayerEntity self) {
-        if (LocalBlindnessClient.isEffectActive()) {
+    private boolean blindfold$ignoreBlindnessForSprint(ClientPlayerEntity self) {
+        if (BlindfoldClient.isEffectActive()) {
             return false; // report "no blindness" so the sprint gate stays open
         }
         return self.hasBlindnessEffect();

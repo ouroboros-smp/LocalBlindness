@@ -1,4 +1,4 @@
-package com.ouroboros.localblindness;
+package com.ouroboros.blindfold;
 
 import org.junit.jupiter.api.Test;
 

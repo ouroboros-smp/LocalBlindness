@@ -1,4 +1,4 @@
-package com.ouroboros.localblindness;
+package com.ouroboros.blindfold;
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.effect.StatusEffect;

@@ -1,4 +1,4 @@
-package com.ouroboros.localblindness;
+package com.ouroboros.blindfold;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

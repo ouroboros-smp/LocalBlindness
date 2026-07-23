@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ release, main ]
   pull_request:
 
 permissions:
@@ -29,7 +29,7 @@ jobs:
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
-          name: localblindness-jar
+          name: blindfold-jar
           path: build/libs/*.jar
           if-no-files-found: error
 

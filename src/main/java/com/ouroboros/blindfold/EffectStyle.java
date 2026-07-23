@@ -1,4 +1,4 @@
-package com.ouroboros.localblindness;
+package com.ouroboros.blindfold;
 
 import java.util.Locale;
 

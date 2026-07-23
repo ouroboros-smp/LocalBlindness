@@ -1,7 +1,7 @@
-package com.ouroboros.localblindness.gametest;
+package com.ouroboros.blindfold.gametest;
 
-import com.ouroboros.localblindness.LocalBlindnessClient;
-import com.ouroboros.localblindness.gametest.mixin.ClientPlayerEntityInvoker;
+import com.ouroboros.blindfold.BlindfoldClient;
+import com.ouroboros.blindfold.gametest.mixin.ClientPlayerEntityInvoker;
 import java.util.Properties;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -40,7 +40,7 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
 
             command(context, "blindfold off");
             command(context, "blindfold style blindness");
-            context.waitFor(client -> !LocalBlindnessClient.isEffectActive());
+            context.waitFor(client -> !BlindfoldClient.isEffectActive());
 
             context.runOnClient(client -> {
                 ClientPlayerEntity player = requirePlayer(client.player);
@@ -52,7 +52,7 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
 
             command(context, "blindfold on");
             context.waitFor(client -> client.player != null
-                    && LocalBlindnessClient.isEffectActive()
+                    && BlindfoldClient.isEffectActive()
                     && client.player.hasStatusEffect(StatusEffects.BLINDNESS));
             context.runOnClient(client -> {
                 ClientPlayerEntity player = requirePlayer(client.player);
@@ -79,7 +79,7 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
 
             command(context, "blindfold off");
             context.waitFor(client -> client.player != null
-                    && !LocalBlindnessClient.isEffectActive()
+                    && !BlindfoldClient.isEffectActive()
                     && !client.player.hasStatusEffect(StatusEffects.BLINDNESS)
                     && !client.player.hasStatusEffect(StatusEffects.DARKNESS));
 

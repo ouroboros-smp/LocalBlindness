@@ -1,4 +1,4 @@
-package com.ouroboros.localblindness.gametest.mixin;
+package com.ouroboros.blindfold.gametest.mixin;
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
