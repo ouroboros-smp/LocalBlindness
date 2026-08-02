@@ -1,6 +1,6 @@
 name: publish
 
-# Publishes on every version tag (e.g. `git tag v1.0.0 && git push origin v1.0.0`).
+# Publishes on every version tag (e.g. `git tag v1.3.0 && git push origin v1.3.0`).
 # Can also be run by hand from the Actions tab (workflow_dispatch).
 on:
   push:
@@ -22,6 +22,18 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Verify tag matches the declared version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_version=${GITHUB_REF_NAME#v}
+          declared_version=$(sed -n 's/^mod_version=//p' gradle.properties)
+          if [[ "$release_version" != "$declared_version" ]]; then
+            echo "::error::Tag version $release_version does not match mod_version $declared_version"
+            exit 1
+          fi
 
       - name: Build
         run: |
