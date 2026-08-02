@@ -75,13 +75,13 @@ Minecraft 1.21.11, Fabric Loader 0.19.2+, Fabric API, Java 21+.
 Once `MODRINTH_TOKEN` is set, publishing is a tag away:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.3.0
+git push origin v1.3.0
 ```
 
 The `publish` workflow builds the jar and pushes it to Modrinth (and CurseForge if configured, and the GitHub release). Version, loader, game version, and the Fabric API dependency are read from `fabric.mod.json`.
 
-To publish the **current** build the first time, either run the `publish` workflow manually from the Actions tab (workflow_dispatch) after the token is set, or upload `build/libs/blindfold-1.0.0.jar` by hand on the Modrinth version page.
+To publish the **current** build, either push its matching version tag or run the `publish` workflow manually from the Actions tab (workflow_dispatch), then verify the GitHub and Modrinth artifacts.
 
 ## Notes
 - The workflow lives at `.github/workflows/publish.yml` and targets Modrinth slug `blindfold`.

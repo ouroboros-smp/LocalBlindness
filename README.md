@@ -20,13 +20,13 @@ A Fabric mod that puts the **real** vanilla Blindness (or Warden-style Darkness)
 
 1. Install Fabric Loader for 1.21.11.
 2. Drop these into your `mods/` folder:
-   - `blindfold-1.0.0.jar` (this mod)
+   - `blindfold-1.3.0.jar` (this mod)
    - [Fabric API](https://modrinth.com/mod/fabric-api) for 1.21.11
 3. Launch the game.
 
 **On a server (server-side opt-in):**
 
-1. Drop `blindfold-1.0.0.jar` and Fabric API into the server's `mods/` folder and restart.
+1. Drop `blindfold-1.3.0.jar` and Fabric API into the server's `mods/` folder and restart.
 2. That's it — any player can now run `/blindfold on`. No OP needed, and players don't need the mod installed.
 
 ## Usage
@@ -98,7 +98,7 @@ Requires JDK 21.
 ./gradlew runClientGameTest
 ```
 
-The built jar lands in `build/libs/blindfold-1.0.0.jar`. `runClientGameTest` launches Fabric's real client GameTest suite and verifies command toggling, both vanilla visual effects, re-assertion, cleanup, and the scoped sprint bypass. Run `./gradlew runClient` for an interactive smoke test.
+The built jar lands in `build/libs/blindfold-1.3.0.jar`. `runClientGameTest` launches Fabric's real client GameTest suite and verifies command toggling, both vanilla visual effects, re-assertion, cleanup, and the scoped sprint bypass. Run `./gradlew runClient` for an interactive smoke test.
 
 ## License
 
