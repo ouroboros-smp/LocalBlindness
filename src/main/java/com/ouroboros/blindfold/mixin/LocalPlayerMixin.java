@@ -1,72 +1,43 @@
 package com.ouroboros.blindfold.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.ouroboros.blindfold.BlindfoldClient;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.Holder;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
  * Drops the sprinting penalty that the Blindness effect normally imposes, but only while this mod is
- * the thing applying the effect. Only the blindness check inside the vanilla sprint gating is
- * bypassed, so the blindness fog and darkening are untouched. Real gameplay blindness is left alone
- * whenever the mod's toggle is off.
+ * the thing applying the effect. In 26.2 the sprint gates ({@code canStartSprinting},
+ * {@code shouldStopRunSprinting}, {@code shouldStopSwimSprinting}) all funnel through
+ * {@code isSprintingPossible}, whose blindness check is generalized into a single
+ * {@code isMobilityRestricted()} call - so that call is wrapped and reported as unrestricted while
+ * Blindfold's own effect is active. Only sprint gating is affected; the blindness fog and darkening
+ * are untouched, and real gameplay blindness keeps its vanilla penalty whenever the toggle is off.
  *
- * <p>Since 26.x the sprint gating is spread across several {@code LocalPlayer} predicates
- * ({@code isSprintingPossible}, {@code canStartSprinting}, {@code shouldStopRunSprinting},
- * {@code shouldStopSwimSprinting}) and the dedicated blindness helper of 1.21.x is gone, so the
- * check is an inline {@code hasEffect(MobEffects.BLINDNESS)} call whose exact home has moved between
- * versions. The injectors below therefore cover all of these entry points with {@code require = 0}:
- * the {@link WrapOperation} inspects the effect argument, so only blindness checks are ever altered,
- * and a future reshuffle degrades to "vanilla sprint rules while blindfolded" instead of crashing
- * the game. The client GameTest suite asserts the actual sprint behavior on every build, so a
- * silently missed injection cannot survive CI.
+ * <p>{@code require = 0}: if a future update reshapes the gate again, the mod degrades to "vanilla
+ * sprint rules while blindfolded" instead of crashing the game. The client GameTest suite asserts
+ * the actual sprint behavior in both directions on every build, so a silently missed injection
+ * cannot survive CI.
+ *
+ * <p>Known approximation: while the toggle is on, any <em>other</em> mobility-restricting condition
+ * folded into {@code isMobilityRestricted()} is bypassed too. Vanilla's only such condition is
+ * blindness (which is indistinguishable from ours anyway - same effect type), matching what the
+ * pre-26.2 redirect did.
  */
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin {
 
-    @ModifyExpressionValue(
-            method = {"isSprintingPossible", "canStartSprinting", "shouldStopRunSprinting", "shouldStopSwimSprinting", "canSprint"},
-            at = {
-                    @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;hasBlindness()Z"),
-                    @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;hasBlindnessEffect()Z")
-            },
+    @WrapOperation(
+            method = "isSprintingPossible",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isMobilityRestricted()Z"),
             require = 0
     )
-    private boolean blindfold$ignoreBlindnessHelperForSprint(boolean hasBlindness) {
+    private boolean blindfold$ignoreOwnBlindnessMobilityRestriction(LocalPlayer self, Operation<Boolean> original) {
         if (BlindfoldClient.isEffectActive()) {
-            return false; // report "no blindness" so the sprint gate stays open
+            return false; // report "mobility unrestricted" so the sprint gate stays open
         }
-        return hasBlindness;
-    }
-
-    @WrapOperation(
-            method = {"isSprintingPossible", "canStartSprinting", "shouldStopRunSprinting", "shouldStopSwimSprinting", "canSprint"},
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;hasEffect(Lnet/minecraft/core/Holder;)Z"),
-            require = 0
-    )
-    private boolean blindfold$ignoreInlineBlindnessForSprint(LocalPlayer self, Holder<MobEffect> effect, Operation<Boolean> original) {
-        if (effect == MobEffects.BLINDNESS && BlindfoldClient.isEffectActive()) {
-            return false; // report "no blindness" so the sprint gate stays open
-        }
-        return original.call(self, effect);
-    }
-
-    @WrapOperation(
-            method = {"isSprintingPossible", "canStartSprinting", "shouldStopRunSprinting", "shouldStopSwimSprinting", "canSprint"},
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;hasEffect(Lnet/minecraft/core/Holder;)Z"),
-            require = 0
-    )
-    private boolean blindfold$ignoreInheritedInlineBlindnessForSprint(LivingEntity self, Holder<MobEffect> effect, Operation<Boolean> original) {
-        if (effect == MobEffects.BLINDNESS && BlindfoldClient.isEffectActive()) {
-            return false; // report "no blindness" so the sprint gate stays open
-        }
-        return original.call(self, effect);
+        return original.call(self);
     }
 }
