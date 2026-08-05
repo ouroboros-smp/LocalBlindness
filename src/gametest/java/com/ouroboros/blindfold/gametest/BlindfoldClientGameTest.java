@@ -112,10 +112,14 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
      */
     private static boolean canSprint(LocalPlayer player) {
         Method predicate = null;
-        for (Method method : LocalPlayer.class.getDeclaredMethods()) {
-            if ((method.getName().equals("isSprintingPossible") || method.getName().equals("canSprint"))
-                    && method.getReturnType() == boolean.class) {
-                predicate = method;
+        for (String name : new String[] {"isSprintingPossible", "canSprint"}) {
+            for (Method method : LocalPlayer.class.getDeclaredMethods()) {
+                if (method.getName().equals(name) && method.getReturnType() == boolean.class) {
+                    predicate = method;
+                    break;
+                }
+            }
+            if (predicate != null) {
                 break;
             }
         }

@@ -60,7 +60,7 @@ public class BlindfoldClient implements ClientModInitializer {
             while (toggleKey.consumeClick()) {
                 boolean now = TOGGLE.toggle();
                 if (client.player != null) {
-                    client.player.displayClientMessage(status(now), true);
+                    client.gui.hud.setOverlayMessage(status(now), false);
                 }
             }
             controller.tick(client.player);
