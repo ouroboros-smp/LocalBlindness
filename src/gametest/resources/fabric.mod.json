@@ -9,9 +9,6 @@
       "com.ouroboros.blindfold.gametest.BlindfoldClientGameTest"
     ]
   },
-  "mixins": [
-    "blindfold-gametest.mixins.json"
-  ],
   "depends": {
     "blindfold": "*",
     "fabric-api": "*"

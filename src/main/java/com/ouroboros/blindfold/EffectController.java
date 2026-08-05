@@ -1,10 +1,10 @@
 package com.ouroboros.blindfold;
 
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Holder;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 
 import java.util.function.Supplier;
 
@@ -30,29 +30,29 @@ public final class EffectController {
         this.config = config;
     }
 
-    public void tick(ClientPlayerEntity player) {
+    public void tick(LocalPlayer player) {
         if (player == null) {
             return;
         }
         BlindnessConfig cfg = config.get();
         boolean darkness = cfg.resolvedStyle() == EffectStyle.DARKNESS;
-        RegistryEntry<StatusEffect> wanted = darkness ? StatusEffects.DARKNESS : StatusEffects.BLINDNESS;
-        RegistryEntry<StatusEffect> other = darkness ? StatusEffects.BLINDNESS : StatusEffects.DARKNESS;
+        Holder<MobEffect> wanted = darkness ? MobEffects.DARKNESS : MobEffects.BLINDNESS;
+        Holder<MobEffect> other = darkness ? MobEffects.BLINDNESS : MobEffects.DARKNESS;
 
         if (toggle.isEnabled()) {
-            StatusEffectInstance current = player.getStatusEffect(wanted);
-            if (current == null || !current.isInfinite()) {
-                player.addStatusEffect(new StatusEffectInstance(
-                        wanted, StatusEffectInstance.INFINITE, 0, false, false, cfg.showEffectIcon));
+            MobEffectInstance current = player.getEffect(wanted);
+            if (current == null || !current.isInfiniteDuration()) {
+                player.addEffect(new MobEffectInstance(
+                        wanted, MobEffectInstance.INFINITE_DURATION, 0, false, false, cfg.showEffectIcon));
                 applied = true;
             }
             // If the style was switched while active, drop the effect we previously applied.
-            if (applied && player.hasStatusEffect(other)) {
-                player.removeStatusEffect(other);
+            if (applied && player.hasEffect(other)) {
+                player.removeEffect(other);
             }
         } else if (applied) {
-            player.removeStatusEffect(StatusEffects.BLINDNESS);
-            player.removeStatusEffect(StatusEffects.DARKNESS);
+            player.removeEffect(MobEffects.BLINDNESS);
+            player.removeEffect(MobEffects.DARKNESS);
             applied = false;
         }
     }

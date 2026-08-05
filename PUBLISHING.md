@@ -30,7 +30,7 @@ The Modrinth project already exists: https://modrinth.com/project/blindfold
 | License | MIT |
 | Source / Issues | https://github.com/ouroboros-smp/blindfold |
 | Mod loaders | Fabric |
-| Game versions | 1.21.11 |
+| Game versions | 26.2 |
 | Dependencies | Fabric API (Required) |
 | Icon | (add one; 512x512 PNG recommended) |
 
@@ -67,7 +67,7 @@ Every player can opt in with `/blindfold on` - no OP needed, and no client mod n
 `/blindfold reload` (client: reload local config; server: OP only)
 
 ## Requirements
-Minecraft 1.21.11, Fabric Loader 0.19.2+, Fabric API, Java 21+.
+Minecraft 26.2, Fabric Loader 0.19.3+, Fabric API, Java 25+.
 ```
 
 ## Releasing a version (automated)
@@ -75,8 +75,8 @@ Minecraft 1.21.11, Fabric Loader 0.19.2+, Fabric API, Java 21+.
 Once `MODRINTH_TOKEN` is set, publishing is a tag away:
 
 ```bash
-git tag v1.3.0
-git push origin v1.3.0
+git tag v1.4.0
+git push origin v1.4.0
 ```
 
 The `publish` workflow builds the jar and pushes it to Modrinth (and CurseForge if configured, and the GitHub release). Version, loader, game version, and the Fabric API dependency are read from `fabric.mod.json`.

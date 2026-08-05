@@ -4,10 +4,10 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.ouroboros.blindfold.Blindfold;
 import com.ouroboros.blindfold.EffectStyle;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Locale;
 
@@ -24,60 +24,60 @@ public final class BlindfoldServerCommand {
     private BlindfoldServerCommand() {
     }
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
                                 ServerOptIns optIns,
                                 ServerEffectController controller) {
-        dispatcher.register(CommandManager.literal(Blindfold.MOD_ID)
+        dispatcher.register(Commands.literal(Blindfold.MOD_ID)
                 .executes(ctx -> {
-                    ServerPlayerEntity player = ctx.getSource().getPlayerOrThrow();
-                    boolean on = optIns.isEnabled(player.getUuid());
-                    EffectStyle style = optIns.styleFor(player.getUuid(), Blindfold.config().resolvedStyle());
-                    ctx.getSource().sendFeedback(() -> Text.literal(
+                    ServerPlayer player = ctx.getSource().getPlayerOrException();
+                    boolean on = optIns.isEnabled(player.getUUID());
+                    EffectStyle style = optIns.styleFor(player.getUUID(), Blindfold.config().resolvedStyle());
+                    ctx.getSource().sendSuccess(() -> Component.literal(
                             "[Blindfold] " + (on ? "ON" : "off") + " (style: " + label(style) + ")"), false);
                     return 1;
                 })
-                .then(CommandManager.literal("toggle").executes(ctx ->
+                .then(Commands.literal("toggle").executes(ctx ->
                         setEnabled(ctx.getSource(), optIns, controller,
-                                optIns.toggle(ctx.getSource().getPlayerOrThrow().getUuid()))))
-                .then(CommandManager.literal("on").executes(ctx ->
+                                optIns.toggle(ctx.getSource().getPlayerOrException().getUUID()))))
+                .then(Commands.literal("on").executes(ctx ->
                         setEnabled(ctx.getSource(), optIns, controller, true)))
-                .then(CommandManager.literal("off").executes(ctx ->
+                .then(Commands.literal("off").executes(ctx ->
                         setEnabled(ctx.getSource(), optIns, controller, false)))
-                .then(CommandManager.literal("style")
-                        .then(CommandManager.literal("blindness").executes(ctx ->
+                .then(Commands.literal("style")
+                        .then(Commands.literal("blindness").executes(ctx ->
                                 setStyle(ctx.getSource(), optIns, EffectStyle.BLINDNESS)))
-                        .then(CommandManager.literal("darkness").executes(ctx ->
+                        .then(Commands.literal("darkness").executes(ctx ->
                                 setStyle(ctx.getSource(), optIns, EffectStyle.DARKNESS))))
-                .then(CommandManager.literal("reload")
-                        .requires(CommandManager.requirePermissionLevel(CommandManager.GAMEMASTERS_CHECK))
+                .then(Commands.literal("reload")
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .executes(ctx -> {
                             BlindfoldServerCommand.reload(ctx.getSource());
                             return 1;
                         })));
     }
 
-    private static int setEnabled(ServerCommandSource source, ServerOptIns optIns,
+    private static int setEnabled(CommandSourceStack source, ServerOptIns optIns,
                                   ServerEffectController controller, boolean enabled) throws CommandSyntaxException {
-        ServerPlayerEntity player = source.getPlayerOrThrow();
-        optIns.set(player.getUuid(), enabled);
+        ServerPlayer player = source.getPlayerOrException();
+        optIns.set(player.getUUID(), enabled);
         if (!enabled) {
             controller.clearNow(player); // drop the effect right away rather than next tick
         }
-        source.sendFeedback(() -> Text.literal("[Blindfold] " + (enabled ? "ON" : "off")), false);
+        source.sendSuccess(() -> Component.literal("[Blindfold] " + (enabled ? "ON" : "off")), false);
         return 1;
     }
 
-    private static int setStyle(ServerCommandSource source, ServerOptIns optIns,
+    private static int setStyle(CommandSourceStack source, ServerOptIns optIns,
                                 EffectStyle style) throws CommandSyntaxException {
-        ServerPlayerEntity player = source.getPlayerOrThrow();
-        optIns.setStyle(player.getUuid(), style);
-        source.sendFeedback(() -> Text.literal("[Blindfold] style set to " + label(style) + " (for you)"), false);
+        ServerPlayer player = source.getPlayerOrException();
+        optIns.setStyle(player.getUUID(), style);
+        source.sendSuccess(() -> Component.literal("[Blindfold] style set to " + label(style) + " (for you)"), false);
         return 1;
     }
 
-    private static void reload(ServerCommandSource source) {
+    private static void reload(CommandSourceStack source) {
         EffectStyle style = Blindfold.reloadConfig().resolvedStyle();
-        source.sendFeedback(() -> Text.literal(
+        source.sendSuccess(() -> Component.literal(
                 "[Blindfold] reloaded config (default style: " + label(style) + ")"), true);
     }
 

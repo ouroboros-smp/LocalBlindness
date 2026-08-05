@@ -2,12 +2,12 @@ package com.ouroboros.blindfold.server;
 
 import com.ouroboros.blindfold.BlindnessConfig;
 import com.ouroboros.blindfold.EffectStyle;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.Holder;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -45,13 +45,13 @@ public final class ServerEffectController {
     }
 
     public void tick(MinecraftServer server) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             tickPlayer(player);
         }
     }
 
-    private void tickPlayer(ServerPlayerEntity player) {
-        UUID id = player.getUuid();
+    private void tickPlayer(ServerPlayer player) {
+        UUID id = player.getUUID();
         if (!optIns.isEnabled(id)) {
             if (applied.remove(id)) {
                 clearManaged(player);
@@ -61,14 +61,14 @@ public final class ServerEffectController {
 
         BlindnessConfig cfg = config.get();
         boolean darkness = optIns.styleFor(id, cfg.resolvedStyle()) == EffectStyle.DARKNESS;
-        RegistryEntry<StatusEffect> wanted = darkness ? StatusEffects.DARKNESS : StatusEffects.BLINDNESS;
-        RegistryEntry<StatusEffect> other = darkness ? StatusEffects.BLINDNESS : StatusEffects.DARKNESS;
+        Holder<MobEffect> wanted = darkness ? MobEffects.DARKNESS : MobEffects.BLINDNESS;
+        Holder<MobEffect> other = darkness ? MobEffects.BLINDNESS : MobEffects.DARKNESS;
 
-        StatusEffectInstance current = player.getStatusEffect(wanted);
+        MobEffectInstance current = player.getEffect(wanted);
         boolean satisfied = current != null
-                && (current.isInfinite() || current.getDuration() >= REFRESH_BELOW_TICKS);
+                && (current.isInfiniteDuration() || current.getDuration() >= REFRESH_BELOW_TICKS);
         if (!satisfied) {
-            player.addStatusEffect(new StatusEffectInstance(
+            player.addEffect(new MobEffectInstance(
                     wanted, DURATION_TICKS, 0, false, false, cfg.showEffectIcon));
             applied.add(id);
         }
@@ -79,8 +79,8 @@ public final class ServerEffectController {
     }
 
     /** Instantly remove the managed effects from a player, e.g. right when they opt out. */
-    public void clearNow(ServerPlayerEntity player) {
-        applied.remove(player.getUuid());
+    public void clearNow(ServerPlayer player) {
+        applied.remove(player.getUUID());
         clearManaged(player);
     }
 
@@ -89,36 +89,36 @@ public final class ServerEffectController {
      * player who logged out blindfolded and came back after a server restart is not stuck riding
      * out the remainder.
      */
-    public void onJoin(ServerPlayerEntity player) {
-        if (optIns.isEnabled(player.getUuid())) {
+    public void onJoin(ServerPlayer player) {
+        if (optIns.isEnabled(player.getUUID())) {
             return; // still opted in; the tick loop keeps the effect fresh
         }
-        removeIfManagedLooking(player, StatusEffects.BLINDNESS);
-        removeIfManagedLooking(player, StatusEffects.DARKNESS);
+        removeIfManagedLooking(player, MobEffects.BLINDNESS);
+        removeIfManagedLooking(player, MobEffects.DARKNESS);
     }
 
-    private void clearManaged(ServerPlayerEntity player) {
-        removeIfFinite(player, StatusEffects.BLINDNESS);
-        removeIfFinite(player, StatusEffects.DARKNESS);
+    private void clearManaged(ServerPlayer player) {
+        removeIfFinite(player, MobEffects.BLINDNESS);
+        removeIfFinite(player, MobEffects.DARKNESS);
     }
 
     /** Remove the effect unless it is infinite (an infinite instance cannot be ours). */
-    private static void removeIfFinite(ServerPlayerEntity player, RegistryEntry<StatusEffect> effect) {
-        StatusEffectInstance instance = player.getStatusEffect(effect);
-        if (instance != null && !instance.isInfinite()) {
-            player.removeStatusEffect(effect);
+    private static void removeIfFinite(ServerPlayer player, Holder<MobEffect> effect) {
+        MobEffectInstance instance = player.getEffect(effect);
+        if (instance != null && !instance.isInfiniteDuration()) {
+            player.removeEffect(effect);
         }
     }
 
     /** Remove the effect only if it matches the exact shape this controller applies. */
-    private static void removeIfManagedLooking(ServerPlayerEntity player, RegistryEntry<StatusEffect> effect) {
-        StatusEffectInstance instance = player.getStatusEffect(effect);
+    private static void removeIfManagedLooking(ServerPlayer player, Holder<MobEffect> effect) {
+        MobEffectInstance instance = player.getEffect(effect);
         if (instance != null
-                && !instance.isInfinite()
+                && !instance.isInfiniteDuration()
                 && instance.getDuration() <= DURATION_TICKS
                 && instance.getAmplifier() == 0
-                && !instance.shouldShowParticles()) {
-            player.removeStatusEffect(effect);
+                && !instance.isVisible()) {
+            player.removeEffect(effect);
         }
     }
 }

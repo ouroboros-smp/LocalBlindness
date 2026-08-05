@@ -9,24 +9,24 @@ A Fabric mod that puts the **real** vanilla Blindness (or Warden-style Darkness)
 
 | | |
 |---|---|
-| Minecraft | 1.21.11 |
-| Fabric Loader | 0.19.2 or newer |
-| Fabric API | 0.141.4+1.21.11 (or newer for 1.21.11) |
-| Java | 21+ |
+| Minecraft | 26.2 |
+| Fabric Loader | 0.19.3 or newer |
+| Fabric API | 0.156.0+26.2 (or newer for 26.2) |
+| Java | 25+ |
 
 ## Install
 
 **As a player (client-side):**
 
-1. Install Fabric Loader for 1.21.11.
+1. Install Fabric Loader for 26.2.
 2. Drop these into your `mods/` folder:
-   - `blindfold-1.3.0.jar` (this mod)
-   - [Fabric API](https://modrinth.com/mod/fabric-api) for 1.21.11
+   - `blindfold-1.4.0.jar` (this mod)
+   - [Fabric API](https://modrinth.com/mod/fabric-api) for 26.2
 3. Launch the game.
 
 **On a server (server-side opt-in):**
 
-1. Drop `blindfold-1.3.0.jar` and Fabric API into the server's `mods/` folder and restart.
+1. Drop `blindfold-1.4.0.jar` and Fabric API into the server's `mods/` folder and restart.
 2. That's it — any player can now run `/blindfold on`. No OP needed, and players don't need the mod installed.
 
 ## Usage
@@ -83,7 +83,7 @@ Config lives at `config/blindfold.json` (client or server) and is written with s
 
 ## How it works
 
-**Client-side:** while the toggle is on, the mod applies an infinite-duration Blindness (or Darkness) `StatusEffectInstance` to your local `ClientPlayerEntity` and re-asserts it every client tick. Re-asserting matters because the server periodically syncs your effects; if it ever clears the client copy (for example on respawn or dimension change), the next tick puts it straight back. Because it is the genuine status effect, it renders exactly like vanilla blindness. The one gameplay side effect of vanilla Blindness — the inability to sprint (and sprint-swim) — is removed by a small client Mixin that bypasses the `hasBlindnessEffect()` check inside `ClientPlayerEntity.canSprint` only while the mod's own effect is active. The server never sees any of this.
+**Client-side:** while the toggle is on, the mod applies an infinite-duration Blindness (or Darkness) `MobEffectInstance` to your local `LocalPlayer` and re-asserts it every client tick. Re-asserting matters because the server periodically syncs your effects; if it ever clears the client copy (for example on respawn or dimension change), the next tick puts it straight back. Because it is the genuine status effect, it renders exactly like vanilla blindness. The one gameplay side effect of vanilla Blindness — the inability to sprint (and sprint-swim) — is removed by a small client Mixin that bypasses the blindness check inside `LocalPlayer.isSprintingPossible` only while the mod's own effect is active. The server never sees any of this.
 
 **Server-side:** for every opted-in player, the server applies a short (20-second) genuine Blindness or Darkness effect and refreshes it every tick once it drops below 15 seconds, so it never visibly runs out. Using a short, self-refreshing effect instead of an infinite one makes the feature self-healing: if the server crashes or the mod is removed, the leftover effect expires within seconds and nothing permanent is ever written into player data. On join, any leftover managed effect is cleared immediately for players who are no longer opted in. Effects the mod did not apply (say, an infinite Blindness from a command block) are left alone.
 
@@ -91,14 +91,14 @@ Note: because a real effect is applied and removed, legitimately received gamepl
 
 ## Build from source
 
-Requires JDK 21.
+Requires JDK 25.
 
 ```bash
 ./gradlew build
 ./gradlew runClientGameTest
 ```
 
-The built jar lands in `build/libs/blindfold-1.3.0.jar`. `runClientGameTest` launches Fabric's real client GameTest suite and verifies command toggling, both vanilla visual effects, re-assertion, cleanup, and the scoped sprint bypass. Run `./gradlew runClient` for an interactive smoke test.
+The built jar lands in `build/libs/blindfold-1.4.0.jar`. `runClientGameTest` launches Fabric's real client GameTest suite and verifies command toggling, both vanilla visual effects, re-assertion, cleanup, and the scoped sprint bypass. Run `./gradlew runClient` for an interactive smoke test.
 
 ## License
 
