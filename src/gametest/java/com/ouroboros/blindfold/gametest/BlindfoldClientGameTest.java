@@ -2,6 +2,7 @@ package com.ouroboros.blindfold.gametest;
 
 import com.ouroboros.blindfold.BlindfoldClient;
 import java.lang.reflect.Method;
+import java.util.Locale;
 import java.util.Properties;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -60,7 +61,7 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
                 MobEffectInstance effect = player.getEffect(MobEffects.BLINDNESS);
                 check(effect != null && effect.isInfiniteDuration(), "Blindfold must apply infinite vanilla Blindness");
                 check(!player.hasEffect(MobEffects.DARKNESS), "Blindness style must not leave Darkness active");
-                check(canSprint(player), "Blindfold's own Blindness must not block sprinting");
+                checkSprint(canSprint(player), "Blindfold's own Blindness must not block sprinting");
             });
             context.takeScreenshot("blindfold-blindness-active");
 
@@ -91,7 +92,7 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
                 LocalPlayer player = requirePlayer(client.player);
                 check(player.hasEffect(MobEffects.BLINDNESS),
                         "Blindfold must not remove gameplay Blindness while toggled off");
-                check(!canSprint(player), "gameplay Blindness must retain vanilla sprint blocking while Blindfold is off");
+                checkSprint(!canSprint(player), "gameplay Blindness must retain vanilla sprint blocking while Blindfold is off");
                 player.removeEffect(MobEffects.BLINDNESS);
             });
 
@@ -124,7 +125,7 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
             }
         }
         if (predicate == null) {
-            throw new AssertionError("LocalPlayer sprint predicate (isSprintingPossible) not found");
+            throw new AssertionError("LocalPlayer sprint predicate (isSprintingPossible) not found" + sprintDiagnostics());
         }
         Object[] args = new Object[predicate.getParameterCount()];
         for (int i = 0; i < args.length; i++) {
@@ -144,6 +145,22 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
     private static LocalPlayer requirePlayer(LocalPlayer player) {
         if (player == null) throw new AssertionError("client player is unavailable");
         return player;
+    }
+
+    /** Sprint assertions append the real runtime signatures so a mixin-target rename is diagnosable from the CI log alone. */
+    private static void checkSprint(boolean condition, String message) {
+        if (!condition) throw new AssertionError(message + sprintDiagnostics());
+    }
+
+    private static String sprintDiagnostics() {
+        StringBuilder sb = new StringBuilder(" [LocalPlayer sprint/blindness methods: ");
+        for (Method method : LocalPlayer.class.getDeclaredMethods()) {
+            String name = method.getName().toLowerCase(Locale.ROOT);
+            if (name.contains("sprint") || name.contains("blind")) {
+                sb.append(method).append("; ");
+            }
+        }
+        return sb.append(']').toString();
     }
 
     private static void check(boolean condition, String message) {
