@@ -6,12 +6,9 @@
   "environment": "client",
   "entrypoints": {
     "fabric-client-gametest": [
-      "com.ouroboros.localblindness.gametest.BlindfoldClientGameTest"
+      "com.ouroboros.blindfold.gametest.BlindfoldClientGameTest"
     ]
   },
-  "mixins": [
-    "blindfold-gametest.mixins.json"
-  ],
   "depends": {
     "blindfold": "*",
     "fabric-api": "*"

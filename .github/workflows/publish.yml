@@ -1,6 +1,6 @@
 name: publish
 
-# Publishes on every version tag (e.g. `git tag v1.2.0 && git push origin v1.2.0`).
+# Publishes on every version tag (e.g. `git tag v1.3.0 && git push origin v1.3.0`).
 # Can also be run by hand from the Actions tab (workflow_dispatch).
 on:
   push:
@@ -17,11 +17,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
+
+      - name: Verify tag matches the declared version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_version=${GITHUB_REF_NAME#v}
+          declared_version=$(sed -n 's/^mod_version=//p' gradle.properties)
+          if [[ "$release_version" != "$declared_version" ]]; then
+            echo "::error::Tag version $release_version does not match mod_version $declared_version"
+            exit 1
+          fi
 
       - name: Build
         run: |
@@ -53,7 +65,7 @@ jobs:
           name: Blindfold ${{ github.ref_name }}
           version-type: release
           loaders: fabric
-          game-versions: '1.21.11'
-          java: '21'
+          game-versions: '26.2'
+          java: '25'
           dependencies: |
             fabric-api(required)

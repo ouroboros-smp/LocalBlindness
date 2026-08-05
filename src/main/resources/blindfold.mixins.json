@@ -1,10 +1,10 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.ouroboros.localblindness.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "package": "com.ouroboros.blindfold.mixin",
+  "compatibilityLevel": "JAVA_25",
   "client": [
-    "ClientPlayerEntityMixin"
+    "LocalPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,20 +1,19 @@
-package com.ouroboros.localblindness;
+package com.ouroboros.blindfold;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
 import java.util.Locale;
 
 /**
@@ -25,17 +24,15 @@ import java.util.Locale;
  *   <li>a per-tick {@link EffectController} that applies the real Blindness/Darkness status effect
  *       to the local player and re-asserts it so server sync cannot strip it.</li>
  * </ul>
- * Everything runs on the client. The server is never contacted and never told anything.
+ * Everything here runs on the client. The server is never contacted and never told anything. (The
+ * separate, opt-in server side of the mod is wired up in {@link Blindfold}; the two halves share
+ * only the config, which the common entrypoint loads first.)
  */
-public class LocalBlindnessClient implements ClientModInitializer {
-    public static final String MOD_ID = "blindfold";
-    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+public class BlindfoldClient implements ClientModInitializer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Blindfold.MOD_ID);
 
     /** Session toggle. Static so the sprint mixin can read it without a handle to the instance. */
     private static final ToggleState TOGGLE = new ToggleState();
-
-    private BlindnessConfig config;
-    private Path configPath;
 
     /**
      * True while the mod is actively blinding the player. Read by the sprint mixin so the vanilla
@@ -48,23 +45,22 @@ public class LocalBlindnessClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        this.configPath = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID + ".json");
-        this.config = BlindnessConfig.load(configPath);
+        BlindnessConfig config = Blindfold.config();
 
-        EffectController controller = new EffectController(TOGGLE, () -> config);
+        EffectController controller = new EffectController(TOGGLE, Blindfold::config);
 
-        KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key." + MOD_ID + ".toggle",
-                InputUtil.Type.KEYSYM,
+        KeyMapping toggleKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key." + Blindfold.MOD_ID + ".toggle",
+                InputConstants.Type.KEYSYM,
                 config.toggleKeyCode,
-                KeyBinding.Category.MISC
+                KeyMapping.Category.MISC
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (toggleKey.wasPressed()) {
+            while (toggleKey.consumeClick()) {
                 boolean now = TOGGLE.toggle();
                 if (client.player != null) {
-                    client.player.sendMessage(status(now), true);
+                    client.gui.hud.setOverlayMessage(status(now), false);
                 }
             }
             controller.tick(client.player);
@@ -72,54 +68,54 @@ public class LocalBlindnessClient implements ClientModInitializer {
 
         ClientCommandRegistrationCallback.EVENT.register(this::registerCommands);
 
-        LOGGER.info("[Blindfold] ready (style={}, toggleKey={})", config.resolvedStyle(), config.toggleKeyCode);
+        LOGGER.info("[Blindfold] client ready (style={}, toggleKey={})", config.resolvedStyle(), config.toggleKeyCode);
     }
 
-    private void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, Object registryAccess) {
-        dispatcher.register(ClientCommandManager.literal(MOD_ID)
+    private void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext buildContext) {
+        dispatcher.register(ClientCommands.literal(Blindfold.MOD_ID)
                 .executes(ctx -> {
                     ctx.getSource().sendFeedback(status(TOGGLE.isEnabled()));
                     return 1;
                 })
-                .then(ClientCommandManager.literal("toggle").executes(ctx -> {
+                .then(ClientCommands.literal("toggle").executes(ctx -> {
                     ctx.getSource().sendFeedback(status(TOGGLE.toggle()));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("on").executes(ctx -> {
+                .then(ClientCommands.literal("on").executes(ctx -> {
                     TOGGLE.set(true);
                     ctx.getSource().sendFeedback(status(true));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("off").executes(ctx -> {
+                .then(ClientCommands.literal("off").executes(ctx -> {
                     TOGGLE.set(false);
                     ctx.getSource().sendFeedback(status(false));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("style")
-                        .then(ClientCommandManager.literal("blindness")
+                .then(ClientCommands.literal("style")
+                        .then(ClientCommands.literal("blindness")
                                 .executes(ctx -> setStyle(ctx.getSource(), EffectStyle.BLINDNESS)))
-                        .then(ClientCommandManager.literal("darkness")
+                        .then(ClientCommands.literal("darkness")
                                 .executes(ctx -> setStyle(ctx.getSource(), EffectStyle.DARKNESS))))
-                .then(ClientCommandManager.literal("reload").executes(ctx -> {
-                    this.config = BlindnessConfig.load(configPath);
-                    ctx.getSource().sendFeedback(Text.literal(
-                            "[Blindfold] reloaded config (style=" + styleLabel() + ")"));
+                .then(ClientCommands.literal("reload").executes(ctx -> {
+                    BlindnessConfig reloaded = Blindfold.reloadConfig();
+                    ctx.getSource().sendFeedback(Component.literal(
+                            "[Blindfold] reloaded config (style=" + styleLabel(reloaded) + ")"));
                     return 1;
                 })));
     }
 
     private int setStyle(FabricClientCommandSource source, EffectStyle style) {
-        config.style = style.name();
-        config.save(configPath);
-        source.sendFeedback(Text.literal("[Blindfold] style set to " + style.name().toLowerCase(Locale.ROOT)));
+        Blindfold.config().style = style.name();
+        Blindfold.saveConfig();
+        source.sendFeedback(Component.literal("[Blindfold] style set to " + style.name().toLowerCase(Locale.ROOT)));
         return 1;
     }
 
-    private String styleLabel() {
+    private static String styleLabel(BlindnessConfig config) {
         return config.resolvedStyle().name().toLowerCase(Locale.ROOT);
     }
 
-    private static Text status(boolean on) {
-        return Text.literal("[Blindfold] " + (on ? "ON" : "off"));
+    private static Component status(boolean on) {
+        return Component.literal("[Blindfold] " + (on ? "ON" : "off"));
     }
 }
