@@ -160,6 +160,31 @@ public final class BlindfoldClientGameTest implements FabricClientGameTest {
                 sb.append(method).append("; ");
             }
         }
+        sb.append("] [sprint-method bytecode (vanilla, pre-mixin): ");
+        try (java.io.InputStream in = LocalPlayer.class.getClassLoader()
+                .getResourceAsStream("net/minecraft/client/player/LocalPlayer.class")) {
+            org.objectweb.asm.tree.ClassNode node = new org.objectweb.asm.tree.ClassNode();
+            new org.objectweb.asm.ClassReader(in).accept(node, 0);
+            for (org.objectweb.asm.tree.MethodNode method : node.methods) {
+                String name = method.name.toLowerCase(Locale.ROOT);
+                if (!name.contains("sprint") && !name.contains("blind")) {
+                    continue;
+                }
+                sb.append(method.name).append(method.desc).append(" -> ");
+                for (org.objectweb.asm.tree.AbstractInsnNode insn : method.instructions) {
+                    if (insn instanceof org.objectweb.asm.tree.MethodInsnNode invoke) {
+                        sb.append("INVOKE ").append(invoke.owner).append('.').append(invoke.name)
+                                .append(invoke.desc).append("; ");
+                    } else if (insn instanceof org.objectweb.asm.tree.FieldInsnNode field
+                            && field.getOpcode() == org.objectweb.asm.Opcodes.GETSTATIC) {
+                        sb.append("GETSTATIC ").append(field.owner).append('.').append(field.name).append("; ");
+                    }
+                }
+                sb.append(" || ");
+            }
+        } catch (Throwable t) {
+            sb.append("unavailable: ").append(t);
+        }
         return sb.append(']').toString();
     }
 
