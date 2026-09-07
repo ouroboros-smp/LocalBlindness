@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: [self-hosted, crucible-pc]
+    runs-on: onyx-ephemeral
     steps:
       - uses: actions/checkout@v4
 

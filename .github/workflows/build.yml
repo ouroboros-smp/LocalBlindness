@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: [self-hosted, crucible-pc]
+    runs-on: onyx-ephemeral
     steps:
       - uses: actions/checkout@v4
 
@@ -34,7 +34,7 @@ jobs:
           if-no-files-found: error
 
   client-game-test:
-    runs-on: [self-hosted, crucible-pc]
+    runs-on: onyx-ephemeral
     steps:
       - uses: actions/checkout@v4
 
